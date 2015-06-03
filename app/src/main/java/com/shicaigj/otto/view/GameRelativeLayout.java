@@ -53,7 +53,9 @@ public class GameRelativeLayout extends RelativeLayout implements View.OnClickLi
     private ImageView mSecond;
 
     private int level = 1;
-    private boolean isGameSuccess = true;
+    private boolean isGameSuccess = false;
+    private boolean isGameOver = false;
+    private boolean isPause = false;
 
     private GameImageLister onGameImageLister;
 
@@ -62,6 +64,7 @@ public class GameRelativeLayout extends RelativeLayout implements View.OnClickLi
     }
 
     private boolean isTimeEnable = false;
+    private int mTime;
 
     public void setIsTimeEnable(boolean isTimeEnable) {
         this.isTimeEnable = isTimeEnable;
@@ -89,6 +92,19 @@ public class GameRelativeLayout extends RelativeLayout implements View.OnClickLi
                      }
                     break;
                 case TIME_CHANGED:
+                    if(isGameSuccess || isGameOver){
+                        return;
+                    }
+                    if(onGameImageLister != null){
+                        onGameImageLister.timeChanged(mTime);
+                    }
+                    if(mTime == 0){
+                        isGameOver = true;
+                        onGameImageLister.gameOver();
+                        return;
+                    }
+                    mTime--;
+                    mHandler.sendEmptyMessageDelayed(TIME_CHANGED,1000);
                     break;
             }
         }
@@ -125,6 +141,9 @@ public class GameRelativeLayout extends RelativeLayout implements View.OnClickLi
 
             //设置Item的属性
             initItemBitmap();
+            
+            //检测时间
+            checkTimeEnable();
 
             once = true;
         }
@@ -133,13 +152,20 @@ public class GameRelativeLayout extends RelativeLayout implements View.OnClickLi
 
     }
 
+    private void checkTimeEnable() {
+        if(isTimeEnable){
+            mTime = (int) (Math.pow(2,level) * 60);
+            mHandler.sendEmptyMessage(TIME_CHANGED);
+        }
+    }
+
 
     /**
      * 切片图片，乱序布局
      */
     private void initBitmap() {
         if(imageBitmap == null){
-            imageBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.t4);
+            imageBitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.t4);
         }
         imagePieces = ImageSplitterUtil.splitImage(imageBitmap, mColumn);
 
@@ -306,19 +332,50 @@ public class GameRelativeLayout extends RelativeLayout implements View.OnClickLi
             }
         }
         if(isSuccess){
+
+            isGameSuccess = true;
+            mHandler.removeMessages(TIME_CHANGED);
             Log.d(TAG,"GAME IS SUCCESS!!");
-            Toast.makeText(getContext(),"GAME IS SUCCESS!!",Toast.LENGTH_SHORT).show();
             mHandler.sendEmptyMessage(NEXT_LEVEL);
         }
     }
 
+
+    public void restartGame(){
+        isGameOver = false;
+        mColumn--;
+        nextLevel();
+    }
+
+    /**
+     * 进入下一关
+     */
     public void nextLevel(){
         this.removeAllViews();
         mAnimLayout = null;
         mColumn++;
         isGameSuccess = false;
+        checkTimeEnable();
         initBitmap();
         initItemBitmap();
+    }
+
+    /**
+     * 暂停游戏
+     */
+    public void pause(){
+        isPause = true;
+        mHandler.removeMessages(TIME_CHANGED);
+    }
+
+    /**
+     * 从新开始
+     */
+    public void resume(){
+        if(isPause){
+            isPause = false;
+            mHandler.sendEmptyMessage(TIME_CHANGED);
+        }
     }
 
     /**

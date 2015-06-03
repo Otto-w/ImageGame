@@ -12,4 +12,30 @@
        android:layout_centerInParent="true">
 
    </com.shicaigj.otto.view.GameRelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/game_relativeLayout"
+        android:layout_margin="3dp"
+        >
+
+        <TextView
+            android:id="@+id/id_level"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@drawable/level_time_bg"
+            android:text="1"/>
+
+        <TextView
+            android:id="@+id/id_time"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/level_time_bg"
+            android:gravity="center"
+            android:text="1"/>
+
+    </RelativeLayout>
 </RelativeLayout>
